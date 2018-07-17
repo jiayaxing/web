@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.ExcessiveAttemptsException;
 import org.apache.shiro.authc.IncorrectCredentialsException;
 import org.apache.shiro.authc.LockedAccountException;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -40,6 +41,8 @@ public class AuthExceptionHandler {
 			map.put("msg",  "密码错误");
 		}else if(e.getClass() == LockedAccountException.class){
 			map.put("msg",  "该用户不存在登录失败，该用户已被冻结");
+		}else if (e.getClass() == ExcessiveAttemptsException.class) {
+			map.put("msg",  "密码错误次数太多，为了您的账户安全，账户被锁定十分钟。");
 		}else {
 			map.put("msg", "发生了错误");
 		}

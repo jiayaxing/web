@@ -11,6 +11,7 @@ import org.apache.shiro.cache.ehcache.EhCacheManager;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.session.mgt.ExecutorServiceSessionValidationScheduler;
 import org.apache.shiro.session.mgt.SessionManager;
+import org.apache.shiro.spring.LifecycleBeanPostProcessor;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
@@ -26,6 +27,7 @@ import net.sf.ehcache.CacheManager;
 
 @Configuration
 public class ShiroConfiguration {
+	
 	@Bean(name = "ehcache")  
 	public EhCacheManagerFactoryBean ehCacheManagerFactoryBean(){  
 	    EhCacheManagerFactoryBean ehCacheManagerFactoryBean = new EhCacheManagerFactoryBean();  
@@ -51,9 +53,16 @@ public class ShiroConfiguration {
 	    return ehCacheManager;  
 	} 
 	
-	//加密器
-	public HashedCredentialsMatcher  credentialsMatcher() {
+	//原生加密器
+	/*public HashedCredentialsMatcher  credentialsMatcher() {
 		HashedCredentialsMatcher credentialsMatcher = new HashedCredentialsMatcher();
+		credentialsMatcher.setHashAlgorithmName("md5");
+		credentialsMatcher.setHashIterations(3);
+		return credentialsMatcher;
+	}*/
+	//自定义加密器
+	public HashedCredentialsMatcher  credentialsMatcher() {
+		MyCredentialsMatcher credentialsMatcher = new MyCredentialsMatcher(ehCacheManager());
 		credentialsMatcher.setHashAlgorithmName("md5");
 		credentialsMatcher.setHashIterations(3);
 		return credentialsMatcher;
@@ -71,8 +80,8 @@ public class ShiroConfiguration {
 	@Bean
 	public SessionManager sessionManager() {
 		MySessionManager mySessionManager = new MySessionManager();
-	    mySessionManager.setGlobalSessionTimeout(60000);//设置Session失效时间
-	    mySessionManager.setSessionValidationInterval(60000);//设置扫描间隔时间
+	    mySessionManager.setGlobalSessionTimeout(18000000);//设置Session失效时间5个小时
+	    mySessionManager.setSessionValidationInterval(18000000);//设置扫描间隔时间
 	    mySessionManager.setDeleteInvalidSessions(true);//在会话过期后会调用SessionDAO的delete方法删除会话：如会话时持久化存储的，可以调用此方法进行删除。
 	    mySessionManager.setSessionValidationSchedulerEnabled(true);//使能扫描调度器
 	    return mySessionManager; 
@@ -95,8 +104,13 @@ public class ShiroConfiguration {
         shiroFilterFactoryBean.setSecurityManager(securityManager);
         Map<String, Filter> mapFilter = new LinkedHashMap<>();
         MyLogoutFilter myLogoutFilter = new MyLogoutFilter();
+        RolesAuthorizationFilter rolesAuthorizationFilter = new RolesAuthorizationFilter();
+        MyAccessControlFilter accessFilter = new MyAccessControlFilter();
+        accessFilter.setCacheManager(ehCacheManager());
         myLogoutFilter.setRedirectUrl("/registerController/logout1");//设置退出后URL跳转
         mapFilter.put("logout",myLogoutFilter);
+        mapFilter.put("RolesOr",rolesAuthorizationFilter);
+        mapFilter.put("accessFilter",accessFilter);
         shiroFilterFactoryBean.setFilters(mapFilter);
         //如果没有登录，跳转的地址
         shiroFilterFactoryBean.setLoginUrl("/registerController/returnLogin");
@@ -114,22 +128,14 @@ public class ShiroConfiguration {
         //map.put("/infoController/**", "authc,roles[admin]");  
         //对剩余的所有路径进行用户认证
         map.put("/infoController/getInfo","authc");
-        map.put("/infoController/getInfo1","authc,roles[admin]");//需要登录并且要有admin角色才可以访问
-        map.put("/infoController/getInfo2","authc,roles[guest]");
-        //map.put("/infoController/getInfo2","authc,perms['department:view']");//需要登录并且要有department:view权限才可以访问
-        map.put("/infoController/getInfo3","authc,perms[\"employee:delete\"]");//authc表示需要认证(登录)才能使用,只要登录就可以使用
+        map.put("/infoController/getInfo1","authc,RolesOr[\"admin\",\"guest\"],accessFilter");//需要登录，管理员和游客角色都可以
+        map.put("/infoController/getInfo2","authc,RolesOr[admin],accessFilter");//需要登录，只有管理员可以
+        map.put("/infoController/getInfo3","authc,perms[\"employee:delete\"],accessFilter");//authc表示需要认证(登录)才能使用,只要登录就可以使用
         
         shiroFilterFactoryBean.setFilterChainDefinitionMap(map);
         return shiroFilterFactoryBean;
     }
 	
-/*	@Bean
-	@DependsOn("lifecycleBeanPostProcessor")
-	public DefaultAdvisorAutoProxyCreator getAutoProxyCreator(){
-		DefaultAdvisorAutoProxyCreator creator = new DefaultAdvisorAutoProxyCreator();
-		creator.setProxyTargetClass(true);
-		return creator;
-	}*/
 	
 	//加入注解的使用，不加入这个注解不生效
 	@Bean
@@ -138,6 +144,5 @@ public class ShiroConfiguration {
         authorizationAttributeSourceAdvisor.setSecurityManager(securityManager);
         return authorizationAttributeSourceAdvisor;
     }
-	
 
 }

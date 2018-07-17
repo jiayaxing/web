@@ -1,10 +1,27 @@
 <ehcache>
     <!-- 指定一个文件目录，当EHCache把数据写到硬盘上时，将把数据写到这个文件目录下 -->
-    <diskStore path="java.io.tmpdir"/>
+    <!-- 当前把缓存指定在用户的主目录下 -->
+    <diskStore path="user.home"/>
 
     <!-- 设定缓存的默认数据过期策略 -->
  
  	<cache name="shiroUser" maxElementsInMemory="1000"/>
+ 	
+ 	 <!-- 登录记录缓存 锁定10分钟 -->  
+     <cache name="passwordRetryCache" eternal="false"  
+          timeToIdleSeconds="600" timeToLiveSeconds="0" overflowToDisk="false"  
+          statistics="true" maxElementsInMemory="10000">  
+     </cache> 
+     <!-- 短时间内连续访问次数，限制短时间内连续访问次数的缓存 -->
+     <cache name="continueAccessTimesCache" eternal="false"  
+          timeToIdleSeconds="1" timeToLiveSeconds="0" overflowToDisk="false"  
+          statistics="true" maxElementsInMemory="10000">  
+     </cache> 
+     <!-- 最后一次访问时间，存储10分钟。用来限制短时间内连续访问 -->
+     <cache name="lastAccessTimeCache" eternal="false"  
+          timeToIdleSeconds="600" timeToLiveSeconds="0" overflowToDisk="false"  
+          statistics="true" maxElementsInMemory="10000">  
+     </cache> 
     
     <defaultCache
             maxElementsInMemory="10000"
