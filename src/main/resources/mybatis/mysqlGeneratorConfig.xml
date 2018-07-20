@@ -18,7 +18,7 @@
 		<javaClientGenerator targetPackage="com.jiayaxing.web.dao" targetProject="web/src/main/java" type="XMLMAPPER">
 			<property name="enableSubPackages" value="true"/>
 		</javaClientGenerator>
-		<table tableName="shiro_user_role" domainObjectName="ShiroUserRole"
+		<table tableName="shiro_user" domainObjectName="ShiroUser"
     		enableCountByExample="false" enableUpdateByExample="false"
     		enableSelectByExample="false" enableDeleteByExample="false"
     		selectByExampleQueryId="false">

@@ -8,7 +8,9 @@ import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.DisabledAccountException;
+import org.apache.shiro.authc.LockedAccountException;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
+import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
@@ -45,11 +47,14 @@ public class MyShiroRealm extends AuthorizingRealm{
 		String username = (String)authenticationToken.getPrincipal();
 		
 		Map<String,Object> map = userService.getUserInfoByUsername(username);
-		
+		if(map == null || map.isEmpty()==true) {
+			throw new UnknownAccountException();//没找到帐号
+		}
 		String password = map.get("password").toString();
-		/*if (loginUser.isDisabled()) {
-            throw new DisabledAccountException();
-        }*/
+		Integer locked = Integer.valueOf(map.get("locked").toString());
+		if (locked == 1) {
+			throw new LockedAccountException(); //帐号锁定
+        }
 		SimpleAuthenticationInfo info = new SimpleAuthenticationInfo(username,password,ByteSource.Util.bytes("yanzhi"),getName());//将用户名、密码、盐和Realm名称封装到这个对象中。
 		return info;//将这个对象返回给Shiro,Shiro就会帮我们进行对应的验证和缓存。
 	}

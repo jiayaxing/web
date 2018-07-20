@@ -17,8 +17,8 @@ public class MyCredentialsMatcher extends HashedCredentialsMatcher{
 	public MyCredentialsMatcher(EhCacheManager cacheManager) {
 	     passwordRetryCache = cacheManager.getCache("passwordRetryCache");  
 	}
-	
-	@Override
+	//多次密码错误锁定账户
+	/*@Override
 	public boolean doCredentialsMatch(AuthenticationToken token, AuthenticationInfo info) {
 		 String loginName = (String) token.getPrincipal();
 	     AtomicInteger retryCount = passwordRetryCache.get(loginName);
@@ -26,14 +26,35 @@ public class MyCredentialsMatcher extends HashedCredentialsMatcher{
             retryCount = new AtomicInteger();
             passwordRetryCache.put(loginName, retryCount);
          }
-         if(retryCount.incrementAndGet()>5){
+         if(retryCount.incrementAndGet()>2){//第三次弹出多次错误，以后在缓存期内开始校验验证码的正确性。
              throw new ExcessiveAttemptsException();
          }
          boolean matchs = super.doCredentialsMatch(token, info);
          if(matchs){
              passwordRetryCache.remove(loginName);
          }
-		 return super.doCredentialsMatch(token, info);
+		 return matchs;
+	}*/
+	//多次密码错误启用验证码
+	@Override
+	public boolean doCredentialsMatch(AuthenticationToken token, AuthenticationInfo info) {
+		 String loginName = (String) token.getPrincipal();
+		 AtomicInteger retryCount = passwordRetryCache.get(loginName);
+         boolean matchs = super.doCredentialsMatch(token, info);
+         if(matchs){
+        	 if(retryCount != null) { 
+        		 passwordRetryCache.remove(loginName);
+        	 }
+         }else {//密码错误
+        	 if(retryCount==null){
+                 retryCount = new AtomicInteger();
+                 passwordRetryCache.put(loginName, retryCount);
+             }
+             if(retryCount.incrementAndGet()>2){//第三次弹出多次错误，以后在缓存期内开始校验验证码的正确性。
+                 throw new ExcessiveAttemptsException();
+             }
+		 }
+		 return matchs;
 	}
 	
 	public Cache<String, AtomicInteger> getPasswordRetryCache() {

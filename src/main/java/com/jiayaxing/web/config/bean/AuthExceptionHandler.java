@@ -28,25 +28,16 @@ import com.jiayaxing.web.controller.RegisterController;
 public class AuthExceptionHandler {
 	private static Logger log = LoggerFactory.getLogger(AuthExceptionHandler.class);
 	
-	public static final String ERROR_VIEW="error";
-	
 	@ExceptionHandler(value=Exception.class)
 	public Object errorHandler(HttpServletRequest request,HttpServletResponse response,Exception e) {
 		Map<String,Object> map = new HashMap<>();
 		if(e.getClass() == UnauthorizedException.class) {
 			map.put("msg", "没有权限，验证失败");
-		}else if(e.getClass() == AuthenticationException.class){
-			map.put("msg",  "该用户不存在");
-		}else if(e.getClass() == IncorrectCredentialsException.class){
-			map.put("msg",  "密码错误");
-		}else if(e.getClass() == LockedAccountException.class){
-			map.put("msg",  "该用户不存在登录失败，该用户已被冻结");
-		}else if (e.getClass() == ExcessiveAttemptsException.class) {
-			map.put("msg",  "密码错误次数太多，为了您的账户安全，账户被锁定十分钟。");
 		}else {
 			map.put("msg", "发生了错误");
+			log.error("错误信息",e);
 		}
-		log.error("错误信息",e);
+		
 		return map;
 	}
 }
