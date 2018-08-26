@@ -125,6 +125,7 @@ public class ShiroConfiguration {
         // 配置不会被拦截的链接 顺序判断  ，用匿名过滤器拦截
         map.put("/public/**", "anon"); 
         map.put("/registerController/**", "anon");  
+        map.put("/api/orderController/**", "authc"); 
         //map.put("/infoController/**", "authc,roles[admin]");  
         //对剩余的所有路径进行用户认证
         map.put("/infoController/getInfo","authc");

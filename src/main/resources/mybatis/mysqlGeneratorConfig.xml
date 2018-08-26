@@ -4,7 +4,7 @@
 	<classPathEntry location="W:\work\maven\repo\mysql\mysql-connector-java\5.1.45\mysql-connector-java-5.1.45.jar" />
 	<context id="mysqlTables"  targetRuntime="MyBatis3">
 	    
-		<jdbcConnection driverClass="com.mysql.jdbc.Driver" connectionURL="jdbc:mysql://192.168.26.128:3306/saastest" userId="root" password="Pass12345" />
+		<jdbcConnection driverClass="com.mysql.jdbc.Driver" connectionURL="jdbc:mysql://localhost:3306/saastest" userId="root" password="198909" />
 		<!-- 指定生成的类型为java类型，避免数据库中number等类型字段 -->
     	<javaTypeResolver>
 	    	<property name="forceBigDecimals" value="false"/>
@@ -18,7 +18,7 @@
 		<javaClientGenerator targetPackage="com.jiayaxing.web.dao" targetProject="web/src/main/java" type="XMLMAPPER">
 			<property name="enableSubPackages" value="true"/>
 		</javaClientGenerator>
-		<table tableName="shiro_user" domainObjectName="ShiroUser"
+		<table tableName="order_info" domainObjectName="OrderInfo"
     		enableCountByExample="false" enableUpdateByExample="false"
     		enableSelectByExample="false" enableDeleteByExample="false"
     		selectByExampleQueryId="false">
